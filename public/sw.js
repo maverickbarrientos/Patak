@@ -20,6 +20,10 @@ self.addEventListener("push", (event) => {
     self.registration.showNotification(data.title || "Patak", {
       body: data.body || "",
       icon: "/icons/icon-192.png",
+      // Same tag replaces the earlier notification, and renotify makes the
+      // phone alert again, so a repeat reminder does not pile up.
+      tag: data.tag,
+      renotify: Boolean(data.tag),
       data: { url: data.url || "/" },
     }),
   );

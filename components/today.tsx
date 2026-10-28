@@ -5,19 +5,8 @@ import { AutoRefresh } from "@/components/auto-refresh";
 import { SubmitButton } from "@/components/submit-button";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getTimeZone } from "@/lib/config";
-import { DROP_COLUMNS, type Drop } from "@/lib/drops";
-import { zonedToUtc } from "@/lib/schedule";
-import { getSupabase } from "@/lib/supabase-server";
-import {
-  addDays,
-  buildToday,
-  doseKey,
-  formatTime,
-  localDate,
-  type Dose,
-  type DoseStatus,
-} from "@/lib/today";
+import { buildToday, formatTime, type Dose, type DoseStatus } from "@/lib/today";
+import { loadTodayData, type TodayData } from "@/lib/today-data";
 
 const STATUS_LABEL: Record<DoseStatus, string> = {
   done: "Done",
@@ -55,37 +44,13 @@ export async function Today() {
   await connection(); // the time and the database are per request
 
   const now = new Date();
-  let tz: string;
-  let drops: Drop[];
-  const givenAt = new Map<string, Date>(); // dose key -> when it was given
+  let data: TodayData;
   try {
-    tz = getTimeZone();
-    const supabase = getSupabase();
-    const { data, error } = await supabase
-      .from("drops")
-      .select(DROP_COLUMNS)
-      .eq("active", true)
-      .order("created_at")
-      .returns<Drop[]>();
-    if (error) throw error;
-    drops = data;
-
-    const today = localDate(now, tz);
-    const { data: log, error: logError } = await supabase
-      .from("dose_log")
-      .select("drop_id, scheduled_at, given_at")
-      .gte("scheduled_at", zonedToUtc(today, 0, tz).toISOString())
-      .lt("scheduled_at", zonedToUtc(addDays(today, 1), 0, tz).toISOString());
-    if (logError) throw logError;
-    for (const row of log) {
-      givenAt.set(
-        doseKey(row.drop_id, new Date(row.scheduled_at)),
-        new Date(row.given_at),
-      );
-    }
+    data = await loadTodayData(now);
   } catch {
     return <Message>Could not load today. Check the server settings.</Message>;
   }
+  const { tz, drops, givenAt } = data;
 
   if (drops.length === 0) {
     return (

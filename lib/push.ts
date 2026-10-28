@@ -2,7 +2,13 @@ import "server-only";
 import webpush from "web-push";
 import type { ReminderDevice } from "@/lib/reminder-device";
 
-export type PushPayload = { title: string; body: string; url?: string };
+export type PushPayload = {
+  title: string;
+  body: string;
+  url?: string;
+  // A new notification with the same tag replaces the old one.
+  tag?: string;
+};
 
 // Server-only: the private key signs every notification we send.
 function configured() {
@@ -33,7 +39,8 @@ export async function sendPush(
         keys: { p256dh: device.p256dh, auth: device.auth },
       },
       JSON.stringify(payload),
-      { TTL: 60 * 60 },
+      // High urgency asks Android to deliver at once, even in battery saver.
+      { TTL: 60 * 60, urgency: "high" },
     );
     return "sent";
   } catch (error) {
