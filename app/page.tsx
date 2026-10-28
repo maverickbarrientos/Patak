@@ -1,5 +1,7 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Suspense } from "react";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -33,6 +35,15 @@ export default function Home() {
           >
             <DropList />
           </Suspense>
+          <Link
+            href="/drops"
+            className={buttonVariants({
+              variant: "outline",
+              className: "mt-5 h-11 w-full text-base",
+            })}
+          >
+            Manage drops
+          </Link>
         </CardContent>
       </Card>
     </main>

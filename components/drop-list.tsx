@@ -1,7 +1,6 @@
 import { connection } from "next/server";
+import { DROP_COLUMNS, describeDrop, type Drop } from "@/lib/drops";
 import { getSupabase } from "@/lib/supabase-server";
-
-const hhmm = (t: string) => t.slice(0, 5);
 
 export async function DropList() {
   await connection(); // read the database per request, never at build time
@@ -18,8 +17,9 @@ export async function DropList() {
 
   const { data, error } = await supabase
     .from("drops")
-    .select("id, name, eye, interval_hours, day_start, day_end, active")
-    .order("created_at");
+    .select(DROP_COLUMNS)
+    .order("created_at")
+    .returns<Drop[]>();
 
   if (error) {
     return (
@@ -44,8 +44,7 @@ export async function DropList() {
             )}
           </span>
           <span className="text-sm text-muted-foreground">
-            {drop.eye} eye, every {Number(drop.interval_hours)} h,{" "}
-            {hhmm(drop.day_start)} to {hhmm(drop.day_end)}
+            {describeDrop(drop)}
           </span>
         </li>
       ))}
