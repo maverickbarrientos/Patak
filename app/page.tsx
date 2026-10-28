@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Suspense } from "react";
 import {
   Card,
   CardContent,
@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DropList } from "@/components/drop-list";
 
 export default function Home() {
   return (
@@ -18,9 +19,11 @@ export default function Home() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button size="lg" className="w-full">
-            It is live
-          </Button>
+          <Suspense
+            fallback={<p className="text-sm text-muted-foreground">Loading…</p>}
+          >
+            <DropList />
+          </Suspense>
         </CardContent>
       </Card>
     </main>
