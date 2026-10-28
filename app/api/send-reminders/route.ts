@@ -70,32 +70,38 @@ export async function POST(request: Request) {
       return Response.json({ due: due.length, reminded: 0 });
     }
 
-    const byId = new Map(drops.map((d) => [d.id, d]));
+    // Each dose is claimed on its own, so each still gets exactly one reminder
+    // per 10 minutes. But the phone gets ONE notification covering everything
+    // that is due, never one per dose.
     let reminded = 0;
     for (const dose of due) {
-      if (!(await claim(supabase, dose, now))) continue;
+      if (await claim(supabase, dose, now)) reminded += 1;
+    }
+    if (reminded === 0) return Response.json({ due: due.length, reminded: 0 });
 
-      const message = reminderMessage(byId.get(dose.drop_id)!, dose, tz);
-      const results = await Promise.allSettled(
-        devices.map((device) => sendPush(device, message)),
-      );
-      reminded += 1;
+    const byId = new Map(drops.map((d) => [d.id, d]));
+    const message = reminderMessage(
+      due.map((dose) => ({ drop: byId.get(dose.drop_id)!, dose })),
+      tz,
+    );
+    const results = await Promise.allSettled(
+      devices.map((device) => sendPush(device, message)),
+    );
 
-      // A phone that has unsubscribed answers "gone": forget it.
-      const gone = devices.filter((_, i) => {
-        const r = results[i];
-        return r.status === "fulfilled" && r.value === "gone";
-      });
-      if (gone.length > 0) {
-        await supabase
-          .from("reminder_device")
-          .delete()
-          .in("endpoint", gone.map((d) => d.endpoint));
-      }
-      for (const r of results) {
-        if (r.status === "rejected") {
-          console.error("reminder push failed:", (r.reason as Error).message);
-        }
+    // A phone that has unsubscribed answers "gone": forget it.
+    const gone = devices.filter((_, i) => {
+      const r = results[i];
+      return r.status === "fulfilled" && r.value === "gone";
+    });
+    if (gone.length > 0) {
+      await supabase
+        .from("reminder_device")
+        .delete()
+        .in("endpoint", gone.map((d) => d.endpoint));
+    }
+    for (const r of results) {
+      if (r.status === "rejected") {
+        console.error("reminder push failed:", (r.reason as Error).message);
       }
     }
     return Response.json({ due: due.length, reminded });

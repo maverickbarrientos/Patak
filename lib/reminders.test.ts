@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isAuthorized } from "./cron-auth";
 import {
   REMINDER_REPEAT_MINUTES,
+  REMINDER_TAG,
   dosesToRemind,
   reminderMessage,
   withinDayWindow,
@@ -43,8 +44,8 @@ describe("withinDayWindow", () => {
 describe("dosesToRemind", () => {
   it("reminds for a dose that is due now", () => {
     const due = dosesToRemind([drug("a")], at("12:05"), TZ);
-    expect(due.map((x) => x.status)).toEqual(["overdue", "due"]); // 08:00 still not given, 12:00 due
-    expect(due.at(-1)!.scheduled_at).toEqual(at("12:00"));
+    expect(due.map((x) => x.status)).toEqual(["due"]);
+    expect(due[0].scheduled_at).toEqual(at("12:00"));
   });
 
   it("does not remind for a dose that is only coming up", () => {
@@ -55,7 +56,19 @@ describe("dosesToRemind", () => {
 
   it("reminds for an overdue dose that was never given", () => {
     const due = dosesToRemind([drug("a")], at("12:40"), TZ);
-    expect(due.map((x) => x.status)).toEqual(["overdue", "overdue"]);
+    expect(due.map((x) => x.status)).toEqual(["overdue"]);
+  });
+
+  it("reminds only about the latest dose of a drop, never the older missed ones", () => {
+    // 08:00 and 12:00 were never given; at 16:10 only the 16:00 dose counts.
+    const due = dosesToRemind([drug("a")], at("16:10"), TZ);
+    expect(due).toHaveLength(1);
+    expect(due[0].scheduled_at).toEqual(at("16:00"));
+  });
+
+  it("stays quiet when the latest dose is given, even if older ones were not", () => {
+    const given = new Set([doseKey("a", at("12:00"))]); // 08:00 was never marked
+    expect(dosesToRemind([drug("a")], at("12:40"), TZ, given)).toEqual([]);
   });
 
   it("stops reminding once a dose is given", () => {
@@ -70,7 +83,7 @@ describe("dosesToRemind", () => {
 
   it("sends nothing outside the drop's daily window", () => {
     // The 20:00 dose is the last. At 20:01 and later its reminders stop.
-    expect(dosesToRemind([drug("a")], at("20:00"), TZ).length).toBeGreaterThan(0);
+    expect(dosesToRemind([drug("a")], at("20:00"), TZ)).toHaveLength(1);
     expect(dosesToRemind([drug("a")], at("20:01"), TZ)).toEqual([]);
     expect(dosesToRemind([drug("a")], at("23:00"), TZ)).toEqual([]);
   });
@@ -81,33 +94,71 @@ describe("dosesToRemind", () => {
     expect(due.filter((x) => x.drop_id === "b")).toHaveLength(1);
     expect(dosesToRemind([evening], at("18:29"), TZ)).toEqual([]);
   });
+
+  it("gives one dose per drop for a full real-life day, not dozens", () => {
+    // The real schedule, evening, nothing marked given all day. The old rule
+    // would have sent 29 notifications here.
+    const day = [
+      drug("Milflox", { interval_hours: 3, day_start: "05:00:00", day_end: "20:00:00" }),
+      drug("Diquas", { interval_hours: 3, day_start: "18:00:00", day_end: "21:00:00" }),
+      drug("PREDFORTE", { interval_hours: 2, day_start: "07:00:00", day_end: "21:00:00" }),
+      drug("LACRIFRESH", { interval_hours: 1, day_start: "08:00:00", day_end: "20:00:00" }),
+      drug("SOLINE 5", { interval_hours: 2, day_start: "07:30:00", day_end: "21:30:00" }),
+    ];
+    const due = dosesToRemind(day, at("18:47"), TZ);
+    expect(due).toHaveLength(5);
+    expect(new Set(due.map((x) => x.drop_id)).size).toBe(5);
+  });
 });
 
 describe("reminderMessage", () => {
-  const drop = { name: "Diquas", eye: "right" };
-  const dose = (status: "due" | "overdue") => ({
-    key: doseKey("a", at("18:30")),
-    drop_id: "a",
-    scheduled_at: at("18:30"),
-    status,
+  const diquas = { name: "Diquas", eye: "right" };
+  const item = (
+    drop: { name: string; eye: string },
+    status: "due" | "overdue" = "due",
+  ) => ({
+    drop,
+    dose: {
+      key: doseKey(drop.name, at("18:30")),
+      drop_id: drop.name,
+      scheduled_at: at("18:30"),
+      status,
+    },
   });
 
   it("names the drop, the eye and the time for a due dose", () => {
-    const m = reminderMessage(drop, dose("due"), TZ);
+    const m = reminderMessage([item(diquas)], TZ);
     expect(m.title).toBe("Time for Diquas");
     expect(m.body).toBe("Right eye, due at 6:30 PM");
   });
 
   it("says overdue for an overdue dose", () => {
-    const m = reminderMessage(drop, dose("overdue"), TZ);
+    const m = reminderMessage([item(diquas, "overdue")], TZ);
     expect(m.title).toBe("Diquas is overdue");
     expect(m.body).toBe("Right eye, was due at 6:30 PM");
   });
 
-  it("uses one tag per dose so repeats replace the old notification", () => {
-    expect(reminderMessage(drop, dose("due"), TZ).tag).toBe(
-      reminderMessage(drop, dose("overdue"), TZ).tag,
+  it("combines several due drops into one notification", () => {
+    const m = reminderMessage(
+      [item(diquas), item({ name: "Milflox", eye: "right" })],
+      TZ,
     );
+    expect(m.title).toBe("2 drops are due");
+    expect(m.body).toBe("Diquas and Milflox. Right eye.");
+  });
+
+  it("shortens a long list of drops", () => {
+    const names = ["A", "B", "C", "D", "E"];
+    const m = reminderMessage(names.map((name) => item({ name, eye: "right" })), TZ);
+    expect(m.title).toBe("5 drops are due");
+    expect(m.body).toBe("A, B, C and 2 more. Right eye.");
+  });
+
+  it("uses one shared tag so a new reminder replaces the old one", () => {
+    const single = reminderMessage([item(diquas)], TZ).tag;
+    const overdue = reminderMessage([item(diquas, "overdue")], TZ).tag;
+    const many = reminderMessage([item(diquas), item({ name: "B", eye: "right" })], TZ).tag;
+    expect(new Set([single, overdue, many, REMINDER_TAG]).size).toBe(1);
   });
 });
 
