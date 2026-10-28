@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** todo
+**Status:** done
 
 - [x] A Supabase project exists, and its settings are set locally AND in Vercel
 - [x] The `drops` table exists with name, eye (default "right"), interval in hours, daily start time, daily end time, and active
@@ -12,4 +12,4 @@
 - [x] The server key is only used on the server, never in browser code or the repo, and the exception to the "never use service_role" rule is written down in `CLAUDE.md`
 - [x] The time zone is a server setting
 - [x] The live site shows the drops read from the table, including one test row
-- [ ] Works on the live URL
+- [x] Works on the live URL
