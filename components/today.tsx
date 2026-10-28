@@ -1,12 +1,23 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { markGiven, undoGiven } from "@/app/dose-actions";
 import { AutoRefresh } from "@/components/auto-refresh";
+import { SubmitButton } from "@/components/submit-button";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getTimeZone } from "@/lib/config";
 import { DROP_COLUMNS, type Drop } from "@/lib/drops";
+import { zonedToUtc } from "@/lib/schedule";
 import { getSupabase } from "@/lib/supabase-server";
-import { buildToday, formatTime, type Dose, type DoseStatus } from "@/lib/today";
+import {
+  addDays,
+  buildToday,
+  doseKey,
+  formatTime,
+  localDate,
+  type Dose,
+  type DoseStatus,
+} from "@/lib/today";
 
 const STATUS_LABEL: Record<DoseStatus, string> = {
   done: "Done",
@@ -26,14 +37,31 @@ function Message({ children }: { children: React.ReactNode }) {
   return <p className="text-sm text-destructive">{children}</p>;
 }
 
+// The two fields that identify a dose when a form is submitted.
+function DoseFields({ dose }: { dose: Dose }) {
+  return (
+    <>
+      <input type="hidden" name="drop_id" value={dose.drop_id} />
+      <input
+        type="hidden"
+        name="scheduled_at"
+        value={dose.scheduled_at.toISOString()}
+      />
+    </>
+  );
+}
+
 export async function Today() {
   await connection(); // the time and the database are per request
 
+  const now = new Date();
   let tz: string;
   let drops: Drop[];
+  const givenAt = new Map<string, Date>(); // dose key -> when it was given
   try {
     tz = getTimeZone();
-    const { data, error } = await getSupabase()
+    const supabase = getSupabase();
+    const { data, error } = await supabase
       .from("drops")
       .select(DROP_COLUMNS)
       .eq("active", true)
@@ -41,6 +69,20 @@ export async function Today() {
       .returns<Drop[]>();
     if (error) throw error;
     drops = data;
+
+    const today = localDate(now, tz);
+    const { data: log, error: logError } = await supabase
+      .from("dose_log")
+      .select("drop_id, scheduled_at, given_at")
+      .gte("scheduled_at", zonedToUtc(today, 0, tz).toISOString())
+      .lt("scheduled_at", zonedToUtc(addDays(today, 1), 0, tz).toISOString());
+    if (logError) throw logError;
+    for (const row of log) {
+      givenAt.set(
+        doseKey(row.drop_id, new Date(row.scheduled_at)),
+        new Date(row.given_at),
+      );
+    }
   } catch {
     return <Message>Could not load today. Check the server settings.</Message>;
   }
@@ -62,7 +104,7 @@ export async function Today() {
   }
 
   const byId = new Map(drops.map((d) => [d.id, d]));
-  const view = buildToday(drops, new Date(), tz);
+  const view = buildToday(drops, now, tz, new Set(givenAt.keys()));
   const name = (dose: Dose) => byId.get(dose.drop_id)?.name ?? "Drop";
   const next = view.next;
   const nextDrop = next && byId.get(next.drop_id);
@@ -95,6 +137,17 @@ export async function Today() {
               {next.status === "upcoming" &&
                 `Due ${view.nextIsTomorrow ? "tomorrow " : ""}at ${formatTime(next.scheduled_at, tz)}`}
             </p>
+            {!view.nextIsTomorrow && (
+              <form action={markGiven} className="mt-3">
+                <DoseFields dose={next} />
+                <SubmitButton
+                  pendingText="Saving…"
+                  className="h-14 w-full text-xl"
+                >
+                  Given
+                </SubmitButton>
+              </form>
+            )}
           </CardContent>
         </Card>
       )}
@@ -120,9 +173,27 @@ export async function Today() {
                     {name(dose)}
                   </span>
                 </div>
-                <span className={`text-sm ${STATUS_STYLE[dose.status]}`}>
-                  {STATUS_LABEL[dose.status]}
-                </span>
+                {dose.status === "done" ? (
+                  <form action={undoGiven} className="flex items-center gap-3">
+                    <DoseFields dose={dose} />
+                    <span className="text-sm text-muted-foreground">
+                      Given{" "}
+                      {givenAt.has(dose.key) &&
+                        formatTime(givenAt.get(dose.key)!, tz)}
+                    </span>
+                    <SubmitButton
+                      pendingText="…"
+                      variant="outline"
+                      className="h-11 px-4 text-base"
+                    >
+                      Undo
+                    </SubmitButton>
+                  </form>
+                ) : (
+                  <span className={`text-sm ${STATUS_STYLE[dose.status]}`}>
+                    {STATUS_LABEL[dose.status]}
+                  </span>
+                )}
               </li>
             ))}
           </ul>

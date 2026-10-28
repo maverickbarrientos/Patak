@@ -1,4 +1,8 @@
-import { generateDaySchedule, type DrugSchedule } from "./schedule";
+import {
+  generateDaySchedule,
+  generateSlots,
+  type DrugSchedule,
+} from "./schedule";
 
 // A dose counts as "due now" for this long after its time, then it is overdue.
 export const DUE_WINDOW_MINUTES = 30;
@@ -84,6 +88,18 @@ export function buildToday(
       status: "upcoming",
     },
   };
+}
+
+/** Is `scheduledAt` one of this drop's real dose times today? */
+export function isScheduledSlot(
+  drug: DrugSchedule,
+  scheduledAt: Date,
+  now: Date,
+  tz: string,
+): boolean {
+  return generateSlots(drug, localDate(now, tz), tz, 0).some(
+    (slot) => slot.getTime() === scheduledAt.getTime(),
+  );
 }
 
 /** "8:00 AM" in the family's time zone. */

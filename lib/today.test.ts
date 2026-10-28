@@ -7,6 +7,7 @@ import {
   doseKey,
   doseStatus,
   formatTime,
+  isScheduledSlot,
   localDate,
 } from "./today";
 
@@ -126,5 +127,19 @@ describe("formatTime", () => {
   it("formats in the family's time zone", () => {
     expect(formatTime(at("08:00"), TZ)).toBe("8:00 AM");
     expect(formatTime(at("20:30"), TZ)).toBe("8:30 PM");
+  });
+});
+
+describe("isScheduledSlot", () => {
+  const now = at("12:10");
+  it("accepts a real dose time today", () => {
+    expect(isScheduledSlot(drug("a"), at("12:00"), now, TZ)).toBe(true);
+  });
+  it("rejects a time that is not on the drop's schedule", () => {
+    expect(isScheduledSlot(drug("a"), at("12:05"), now, TZ)).toBe(false);
+  });
+  it("rejects a real dose time from another day", () => {
+    expect(isScheduledSlot(drug("a"), at("12:00", "2026-10-27"), now, TZ)).toBe(false);
+    expect(isScheduledSlot(drug("a"), at("12:00", "2026-10-29"), now, TZ)).toBe(false);
   });
 });
