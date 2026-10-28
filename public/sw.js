@@ -4,6 +4,10 @@
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
+// Chrome's automatic install prompt looks for a fetch handler. This one does
+// nothing, so every request still goes straight to the network.
+self.addEventListener("fetch", () => {});
+
 self.addEventListener("push", (event) => {
   let data = {};
   try {
