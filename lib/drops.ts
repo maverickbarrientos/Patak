@@ -1,4 +1,4 @@
-import { toHHMM } from "@/lib/drop-form";
+import { formatClock, formatInterval } from "@/lib/drop-form";
 
 export type Drop = {
   id: string;
@@ -17,5 +17,10 @@ const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (v: string) => UUID.test(v);
 
-export const describeDrop = (d: Drop) =>
-  `${d.eye} eye, every ${Number(d.interval_hours)} h, ${toHHMM(d.day_start)} to ${toHHMM(d.day_end)}`;
+/** "Right eye", with the first letter capitalised. */
+export const eyeLabel = (eye: string) =>
+  `${eye.charAt(0).toUpperCase()}${eye.slice(1)} eye`;
+
+/** "every 3 hours, 3:00 AM to 9:00 PM" */
+export const describeSchedule = (d: Drop) =>
+  `${formatInterval(Number(d.interval_hours))}, ${formatClock(d.day_start)} to ${formatClock(d.day_end)}`;

@@ -1,8 +1,10 @@
-import Image from "next/image";
+import { Droplets } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { buttonVariants } from "@/components/ui/button";
+import { BrandHeader, PageShell } from "@/components/page-shell";
 import { Reminders } from "@/components/reminders";
+import { TodaySkeleton } from "@/components/skeletons";
 import { Today } from "@/components/today";
 
 // The test reminder waits 10 seconds after its action returns, which needs
@@ -11,32 +13,23 @@ export const maxDuration = 30;
 
 export default function Home() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 p-4">
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Image
-            src="/logo.png"
-            alt="Patak logo"
-            width={40}
-            height={40}
-            priority
-            className="rounded-xl"
-          />
-          <h1 className="text-2xl font-semibold">Patak</h1>
-        </div>
+    <PageShell>
+      <BrandHeader>
         <Link
           href="/drops"
-          className={buttonVariants({ variant: "outline", className: "h-11 px-4 text-base" })}
+          className={buttonVariants({
+            variant: "outline",
+            className: "h-11 px-4 text-base",
+          })}
         >
+          <Droplets className="size-4" aria-hidden />
           Drops
         </Link>
-      </header>
+      </BrandHeader>
       <Reminders />
-      <Suspense
-        fallback={<p className="text-sm text-muted-foreground">Loading…</p>}
-      >
+      <Suspense fallback={<TodaySkeleton />}>
         <Today />
       </Suspense>
-    </main>
+    </PageShell>
   );
 }

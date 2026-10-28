@@ -23,6 +23,20 @@ const field = (formData: FormData, key: string) => {
 // The database stores times as "HH:MM:SS", the form wants "HH:MM".
 export const toHHMM = (t: string) => t.slice(0, 5);
 
+/** "18:36:00" -> "6:36 PM", to match how the Today screen shows times. */
+export function formatClock(t: string): string {
+  const [h, m] = t.split(":").map(Number);
+  const hour = h % 12 === 0 ? 12 : h % 12;
+  return `${hour}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+}
+
+/** 4 -> "every 4 hours", 1 -> "every hour", 24 -> "once a day". */
+export function formatInterval(hours: number): string {
+  if (hours === 24) return "once a day";
+  if (hours === 1) return "every hour";
+  return `every ${hours} hours`;
+}
+
 export function parseDropForm(formData: FormData): DropFormResult {
   const errors: DropFormErrors = {};
 

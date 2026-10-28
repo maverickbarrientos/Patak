@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { DropForm } from "@/components/drop-form";
+import { PageHeader, PageShell } from "@/components/page-shell";
+import { FormSkeleton } from "@/components/skeletons";
 import { DROP_COLUMNS, isUuid, type Drop } from "@/lib/drops";
 import { getSupabase } from "@/lib/supabase-server";
 
@@ -24,13 +26,11 @@ export default function EditDropPage({
   params: Promise<{ id: string }>;
 }) {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 p-4">
-      <h1 className="text-2xl font-semibold">Edit drop</h1>
-      <Suspense
-        fallback={<p className="text-sm text-muted-foreground">Loading…</p>}
-      >
+    <PageShell>
+      <PageHeader title="Edit drop" backHref="/drops" backLabel="Drops" />
+      <Suspense fallback={<FormSkeleton />}>
         <EditDrop params={params} />
       </Suspense>
-    </main>
+    </PageShell>
   );
 }

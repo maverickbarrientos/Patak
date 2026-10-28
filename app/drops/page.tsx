@@ -1,30 +1,26 @@
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { DropManageList } from "@/components/drop-manage-list";
+import { PageHeader, PageShell } from "@/components/page-shell";
+import { DropsSkeleton } from "@/components/skeletons";
 
 export default function DropsPage() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 p-4">
-      <header className="flex items-center justify-between">
-        <div>
-          <Link href="/" className="text-sm text-muted-foreground">
-            ← Home
-          </Link>
-          <h1 className="text-2xl font-semibold">Drops</h1>
-        </div>
+    <PageShell>
+      <PageHeader title="Drops">
         <Link
           href="/drops/new"
           className={buttonVariants({ className: "h-11 px-4 text-base" })}
         >
+          <Plus className="size-4" aria-hidden />
           Add drop
         </Link>
-      </header>
-      <Suspense
-        fallback={<p className="text-sm text-muted-foreground">Loading…</p>}
-      >
+      </PageHeader>
+      <Suspense fallback={<DropsSkeleton />}>
         <DropManageList />
       </Suspense>
-    </main>
+    </PageShell>
   );
 }

@@ -1,10 +1,11 @@
 import { DropForm } from "@/components/drop-form";
+import { PageHeader, PageShell } from "@/components/page-shell";
 
 export default function NewDropPage() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 p-4">
-      <h1 className="text-2xl font-semibold">Add a drop</h1>
+    <PageShell>
+      <PageHeader title="Add a drop" backHref="/drops" backLabel="Drops" />
       <DropForm />
-    </main>
+    </PageShell>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseDropForm, toHHMM } from "./drop-form";
+import { formatClock, formatInterval, parseDropForm, toHHMM } from "./drop-form";
 
 const form = (over: Record<string, string> = {}) => {
   const data = {
@@ -73,5 +73,27 @@ describe("parseDropForm", () => {
 describe("toHHMM", () => {
   it("trims database times to HH:MM", () => {
     expect(toHHMM("08:00:00")).toBe("08:00");
+  });
+});
+
+describe("formatClock", () => {
+  it("shows 12-hour times like the Today screen", () => {
+    expect(formatClock("18:36:00")).toBe("6:36 PM");
+    expect(formatClock("08:00")).toBe("8:00 AM");
+    expect(formatClock("03:05:00")).toBe("3:05 AM");
+  });
+  it("handles midnight and noon", () => {
+    expect(formatClock("00:30:00")).toBe("12:30 AM");
+    expect(formatClock("12:00:00")).toBe("12:00 PM");
+    expect(formatClock("23:59:00")).toBe("11:59 PM");
+  });
+});
+
+describe("formatInterval", () => {
+  it("reads naturally", () => {
+    expect(formatInterval(4)).toBe("every 4 hours");
+    expect(formatInterval(1.5)).toBe("every 1.5 hours");
+    expect(formatInterval(1)).toBe("every hour");
+    expect(formatInterval(24)).toBe("once a day");
   });
 });

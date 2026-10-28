@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -11,6 +11,9 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+// The logo blue, so the phone's toolbar matches the app.
+export const viewport: Viewport = { themeColor: "#92d3f3" };
 
 export const metadata: Metadata = {
   title: "Patak",

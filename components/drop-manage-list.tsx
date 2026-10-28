@@ -1,9 +1,16 @@
+import { Pause, Pencil, Play } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { setDropActive } from "@/app/drops/actions";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { DROP_COLUMNS, describeDrop, type Drop } from "@/lib/drops";
+import {
+  DROP_COLUMNS,
+  describeSchedule,
+  eyeLabel,
+  type Drop,
+} from "@/lib/drops";
 import { getSupabase } from "@/lib/supabase-server";
+import { cn } from "@/lib/utils";
 
 export async function DropManageList() {
   await connection(); // read the database per request, never at build time
@@ -18,7 +25,10 @@ export async function DropManageList() {
     drops = data;
   } catch {
     return (
-      <p className="text-sm text-destructive">
+      <p
+        role="alert"
+        className="rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger-foreground"
+      >
         Could not load the drops. Check the database settings.
       </p>
     );
@@ -26,7 +36,7 @@ export async function DropManageList() {
 
   if (drops.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="rounded-xl bg-muted px-4 py-3 text-sm text-muted-foreground">
         No drops yet. Add the first one.
       </p>
     );
@@ -37,17 +47,31 @@ export async function DropManageList() {
       {drops.map((drop) => (
         <li
           key={drop.id}
-          className="flex flex-col gap-3 rounded-xl border p-4"
+          className={cn(
+            "flex flex-col gap-4 rounded-2xl p-4 ring-1 ring-foreground/10",
+            drop.active ? "bg-card shadow-xs" : "bg-muted/60",
+          )}
         >
-          <div className="flex flex-col">
-            <span className="text-base font-medium">
-              {drop.name}
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  "text-lg font-semibold",
+                  !drop.active && "text-muted-foreground",
+                )}
+              >
+                {drop.name}
+              </span>
               {!drop.active && (
-                <span className="text-muted-foreground"> (paused)</span>
+                <span className="rounded-full bg-sun-soft px-2.5 py-0.5 text-xs font-semibold text-sun-foreground">
+                  Paused
+                </span>
               )}
-            </span>
+            </div>
             <span className="text-sm text-muted-foreground">
-              {describeDrop(drop)}
+              {eyeLabel(drop.eye)}
+              <span aria-hidden> · </span>
+              {describeSchedule(drop)}
             </span>
           </div>
           <div className="flex gap-3">
@@ -58,6 +82,7 @@ export async function DropManageList() {
                 className: "h-11 flex-1 text-base",
               })}
             >
+              <Pencil className="size-4" aria-hidden />
               Edit
             </Link>
             <form action={setDropActive} className="flex-1">
@@ -72,6 +97,11 @@ export async function DropManageList() {
                 variant={drop.active ? "secondary" : "default"}
                 className="h-11 w-full text-base"
               >
+                {drop.active ? (
+                  <Pause className="size-4" aria-hidden />
+                ) : (
+                  <Play className="size-4" aria-hidden />
+                )}
                 {drop.active ? "Pause" : "Resume"}
               </Button>
             </form>

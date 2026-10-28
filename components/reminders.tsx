@@ -1,9 +1,9 @@
 "use client";
 
+import { Bell, BellOff, BellRing } from "lucide-react";
 import { useEffect, useState } from "react";
 import { saveReminderDevice, sendTestReminder } from "@/app/reminder-actions";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 
 type Status = "checking" | "unsupported" | "blocked" | "off" | "on";
 
@@ -112,7 +112,7 @@ export function Reminders() {
 
   if (status === "unsupported") {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="rounded-xl bg-muted px-4 py-3 text-sm text-muted-foreground">
         This browser can&apos;t show reminders. Open Patak in Chrome on Android.
       </p>
     );
@@ -120,43 +120,58 @@ export function Reminders() {
 
   if (status === "blocked") {
     return (
-      <Card>
-        <CardContent className="flex flex-col gap-2">
-          <p className="text-base font-medium">Reminders are blocked</p>
-          <p className="text-sm text-muted-foreground">
+      <div className="flex gap-3 rounded-2xl bg-danger-soft p-4 text-danger-foreground">
+        <BellOff className="mt-0.5 size-5 shrink-0" aria-hidden />
+        <div className="flex flex-col gap-1">
+          <p className="text-base font-semibold">Reminders are blocked</p>
+          <p className="text-sm">
             To turn them on: open Chrome, tap the three dots, then Settings,
             Site settings, Notifications, find this site and choose Allow.
             Then reload this page.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   if (status === "off") {
     return (
-      <Card>
-        <CardContent className="flex flex-col gap-3">
-          <div>
-            <p className="text-base font-medium">Turn on reminders</p>
-            <p className="text-sm text-muted-foreground">
+      <div className="flex flex-col gap-4 rounded-2xl bg-sun-soft p-4 text-sun-foreground ring-1 ring-sun/60">
+        <div className="flex gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-sun text-sun-foreground">
+            <Bell className="size-5" aria-hidden />
+          </span>
+          <div className="flex flex-col gap-0.5">
+            <p className="text-base font-semibold">Turn on reminders</p>
+            <p className="text-sm">
               Get a notification when a drop is due, even when the app is
               closed.
             </p>
           </div>
-          <Button onClick={turnOn} disabled={busy} className="h-12 text-base">
-            {busy ? "Turning on…" : "Turn on reminders"}
-          </Button>
-          {message && <p className="text-sm text-destructive">{message}</p>}
-        </CardContent>
-      </Card>
+        </div>
+        <Button
+          onClick={turnOn}
+          disabled={busy}
+          className="h-12 text-base font-semibold"
+        >
+          {busy ? "Turning on…" : "Turn on reminders"}
+        </Button>
+        {message && (
+          <p role="alert" className="text-sm font-medium text-danger-foreground">
+            {message}
+          </p>
+        )}
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">Reminders are on</p>
+      <div className="flex items-center justify-between gap-3 rounded-xl bg-success-soft px-4 py-2 text-success-foreground">
+        <p className="flex items-center gap-2 text-sm font-medium">
+          <BellRing className="size-4" aria-hidden />
+          Reminders are on
+        </p>
         <Button
           variant="outline"
           onClick={sendTest}
@@ -166,7 +181,7 @@ export function Reminders() {
           {busy ? "Sending…" : "Send a test"}
         </Button>
       </div>
-      {message && <p className="text-sm">{message}</p>}
+      {message && <p className="px-1 text-sm text-muted-foreground">{message}</p>}
     </div>
   );
 }

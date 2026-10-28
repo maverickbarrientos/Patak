@@ -24,7 +24,11 @@ export function DropForm({ drop }: { drop?: Drop }) {
   const err = state.errors;
 
   return (
-    <form action={formAction} noValidate className="flex flex-col gap-5">
+    <form
+      action={formAction}
+      noValidate
+      className="flex flex-col gap-5 rounded-2xl bg-card p-5 shadow-xs ring-1 ring-foreground/10"
+    >
       {drop && <input type="hidden" name="id" value={drop.id} />}
 
       <div className="flex flex-col gap-2">
@@ -113,12 +117,16 @@ export function DropForm({ drop }: { drop?: Drop }) {
       )}
 
       <div className="flex gap-3">
-        <Button type="submit" disabled={pending} className="h-11 flex-1 text-base">
+        <Button
+          type="submit"
+          disabled={pending}
+          className="h-12 flex-1 text-base font-semibold"
+        >
           {pending ? "Saving…" : drop ? "Save changes" : "Add drop"}
         </Button>
         <Link
           href="/drops"
-          className={buttonVariants({ variant: "outline", className: "h-11 text-base" })}
+          className={buttonVariants({ variant: "outline", className: "h-12 text-base" })}
         >
           Cancel
         </Link>
