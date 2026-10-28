@@ -2,50 +2,35 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { DropList } from "@/components/drop-list";
+import { Today } from "@/components/today";
 
 export default function Home() {
   return (
-    <main className="flex flex-1 items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 p-4">
+      <header className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <Image
             src="/logo.png"
             alt="Patak logo"
-            width={64}
-            height={64}
+            width={40}
+            height={40}
             priority
-            className="mb-2 rounded-2xl"
+            className="rounded-xl"
           />
-          <CardTitle className="text-2xl">Patak</CardTitle>
-          <CardDescription>
-            Eye drop tracker for the right eye.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Suspense
-            fallback={<p className="text-sm text-muted-foreground">Loading…</p>}
-          >
-            <DropList />
-          </Suspense>
-          <Link
-            href="/drops"
-            className={buttonVariants({
-              variant: "outline",
-              className: "mt-5 h-11 w-full text-base",
-            })}
-          >
-            Manage drops
-          </Link>
-        </CardContent>
-      </Card>
+          <h1 className="text-2xl font-semibold">Patak</h1>
+        </div>
+        <Link
+          href="/drops"
+          className={buttonVariants({ variant: "outline", className: "h-11 px-4 text-base" })}
+        >
+          Drops
+        </Link>
+      </header>
+      <Suspense
+        fallback={<p className="text-sm text-muted-foreground">Loading…</p>}
+      >
+        <Today />
+      </Suspense>
     </main>
   );
 }

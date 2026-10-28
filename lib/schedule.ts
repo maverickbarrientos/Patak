@@ -3,8 +3,8 @@ export type DrugSchedule = {
   interval_hours: number;
   day_start: string; // "HH:MM" local
   day_end: string; // "HH:MM" local, inclusive
-  start_date: string; // "YYYY-MM-DD" local, inclusive
-  end_date: string | null; // "YYYY-MM-DD" local, inclusive
+  start_date?: string; // "YYYY-MM-DD" local, inclusive; none = always started
+  end_date?: string | null; // "YYYY-MM-DD" local, inclusive; none = never ends
 };
 
 export type GivenDose = { drug_id: string; given_at: Date };
@@ -61,7 +61,7 @@ export function generateSlots(
   tz: string,
   offsetMinutes = 0,
 ): Date[] {
-  if (date < drug.start_date) return [];
+  if (drug.start_date && date < drug.start_date) return [];
   if (drug.end_date && date > drug.end_date) return [];
 
   const start = toMinutes(drug.day_start) + offsetMinutes;
