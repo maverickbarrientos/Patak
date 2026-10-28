@@ -3,8 +3,9 @@
 -- Run this ONLY AFTER the app with /api/send-reminders is deployed and the
 -- REMINDER_CRON_SECRET setting exists in Vercel.
 --
--- Before you run it, replace PASTE_REMINDER_CRON_SECRET_HERE (appears once)
--- with the value of REMINDER_CRON_SECRET from your .env.local.
+-- Before you run it, replace the placeholder text in the Authorization line
+-- below (the only place it appears) with the value of REMINDER_CRON_SECRET
+-- from your .env.local.
 -- NEVER commit this file with the real secret in it.
 --
 -- pg_cron wakes up every minute and uses pg_net to POST to the app. The app
