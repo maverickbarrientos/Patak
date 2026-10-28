@@ -5,7 +5,18 @@ const hhmm = (t: string) => t.slice(0, 5);
 
 export async function DropList() {
   await connection(); // read the database per request, never at build time
-  const { data, error } = await getSupabase()
+  let supabase;
+  try {
+    supabase = getSupabase();
+  } catch {
+    return (
+      <p className="text-sm text-destructive">
+        The database settings are missing on the server.
+      </p>
+    );
+  }
+
+  const { data, error } = await supabase
     .from("drops")
     .select("id, name, eye, interval_hours, day_start, day_end, active")
     .order("created_at");
