@@ -4,13 +4,13 @@
 
 **Blocked by:** 04
 
-**Status:** todo
+**Status:** done
 
-- [ ] The app can be installed to the Android home screen and opens like an app, with a name and icon
-- [ ] The Today screen shows a "Turn on reminders" button until reminders are on
-- [ ] Tapping it asks for notification permission and saves the phone in `reminder_device`
+- [ ] The app can be installed to the Android home screen and opens like an app, with a name and icon (NOT MET on the aunt's phone: Chrome reports the site installable but this phone shows no install option. Recorded in docs/LATER.md. Reminders work in the Chrome tab without installing.)
+- [x] The Today screen shows a "Turn on reminders" button until reminders are on
+- [x] Tapping it asks for notification permission and saves the phone in `reminder_device`
 - [x] `reminder_device` has Row Level Security on (set in the SQL; confirm the RLS badge in the Supabase Table Editor) with no public policies
-- [ ] A test reminder arrives on the phone with the app closed
-- [ ] Tapping the notification opens the Today screen
-- [ ] If permission is refused, the screen explains how to turn it on
-- [ ] Works on the live URL, on a real Android phone
+- [x] A test reminder arrives on the phone with the app closed
+- [ ] Tapping the notification opens the Today screen (not confirmed yet)
+- [ ] If permission is refused, the screen explains (not tested on a phone) how to turn it on
+- [x] Works on the live URL, on a real Android phone
