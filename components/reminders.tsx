@@ -46,7 +46,13 @@ export function Reminders() {
         return;
       }
       // Keep the saved copy in step with the phone, in case it was lost.
-      await saveReminderDevice(existing.toJSON());
+      // Only say "on" if the server really has this phone.
+      const saved = await saveReminderDevice(existing.toJSON());
+      if (!saved.ok) {
+        setMessage(saved.message ?? "Could not turn on reminders.");
+        setStatus("off");
+        return;
+      }
       setEndpoint(existing.endpoint);
       setStatus("on");
     })().catch(() => setStatus("off"));
