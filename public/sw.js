@@ -24,6 +24,13 @@ self.addEventListener("push", (event) => {
       // phone alert again, so a repeat reminder does not pile up.
       tag: data.tag,
       renotify: Boolean(data.tag),
+      // Alarm-like: a long buzz pattern, never muted by the app, and it stays
+      // on screen until it is tapped. The loudness of the sound itself is an
+      // Android setting for the notification channel, not something a web app
+      // can change.
+      vibrate: [600, 250, 600, 250, 600, 250, 600],
+      silent: false,
+      requireInteraction: true,
       data: { url: data.url || "/" },
     }),
   );
