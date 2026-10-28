@@ -12,5 +12,5 @@
 - [x] `reminder_device` has Row Level Security on (set in the SQL; confirm the RLS badge in the Supabase Table Editor) with no public policies
 - [x] A test reminder arrives on the phone with the app closed
 - [ ] Tapping the notification opens the Today screen (not confirmed yet)
-- [ ] If permission is refused, the screen explains (not tested on a phone) how to turn it on
+- [ ] If permission is refused, the screen explains how to turn it on (not tested on a phone)
 - [x] Works on the live URL, on a real Android phone
