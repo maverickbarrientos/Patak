@@ -9,7 +9,7 @@
 - [ ] The app can be installed to the Android home screen and opens like an app, with a name and icon
 - [ ] The Today screen shows a "Turn on reminders" button until reminders are on
 - [ ] Tapping it asks for notification permission and saves the phone in `reminder_device`
-- [ ] `reminder_device` has Row Level Security on with no public policies
+- [x] `reminder_device` has Row Level Security on (set in the SQL; confirm the RLS badge in the Supabase Table Editor) with no public policies
 - [ ] A test reminder arrives on the phone with the app closed
 - [ ] Tapping the notification opens the Today screen
 - [ ] If permission is refused, the screen explains how to turn it on

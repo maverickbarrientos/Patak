@@ -2,7 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { buttonVariants } from "@/components/ui/button";
+import { Reminders } from "@/components/reminders";
 import { Today } from "@/components/today";
+
+// The test reminder waits 10 seconds after its action returns, which needs
+// more than the default 10 second function limit.
+export const maxDuration = 30;
 
 export default function Home() {
   return (
@@ -26,6 +31,7 @@ export default function Home() {
           Drops
         </Link>
       </header>
+      <Reminders />
       <Suspense
         fallback={<p className="text-sm text-muted-foreground">Loading…</p>}
       >
